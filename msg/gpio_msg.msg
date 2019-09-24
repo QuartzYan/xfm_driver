@@ -1,2 +1,0 @@
-int8 xfm_wakeup_singal
-int8 wifi_switch_singal

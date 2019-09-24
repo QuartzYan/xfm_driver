@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 import rospy
 import time
+import gpio
 import threading
+
 from XFMI2CDriver import XFMI2CDriver
 from xfm_driver.msg import xfm_cmd
 from xfm_driver.msg import xfm_status
-from xfm_driver.msg import gpio_msg
+
+XFM_WAKEUP_PIN = 480
 
 class XFMRosDriver:
   def __init__(self):
@@ -22,9 +25,11 @@ class XFMRosDriver:
       time.sleep(1)
     rospy.loginfo('get xfm firmware successful!')
 
+    rospy.loginfo('GPIO setup')
+    gpio.setup(XFM_WAKEUP_PIN, gpio.IN)
+
     self.status_pub = rospy.Publisher('xfm_status', xfm_status, queue_size=1)
     rospy.Subscriber('xfm_cmd', xfm_cmd, self.cmdCallBack)
-    rospy.Subscriber('gpio_msg', gpio_msg, self.GPIOCallBack)
 
   def cmdCallBack(self, msg):
     if msg.xfm_reset == True:
@@ -34,9 +39,17 @@ class XFMRosDriver:
     else:
       self._xfm.setWakeUpEn(1)
 
-  def GPIOCallBack(self, msg):
-    if msg.xfm_wakeup_singal == 1:
-      self.pushMsg()
+  def getGPIO(self):
+    rospy.loginfo('start scan gpio...')
+    xfm_last_status = gpio.read(XFM_WAKEUP_PIN)
+    r = rospy.Rate(100)
+    while not rospy.is_shutdown():
+      xfm_now_status = gpio.read(XFM_WAKEUP_PIN)
+      if xfm_last_status == 0 and xfm_now_status == 1:
+        #print "RISING!!"
+        self.pushMsg()
+      xfm_last_status = xfm_now_status
+      r.sleep()
 
   def pushMsg(self):
     msg = xfm_status()
@@ -71,6 +84,8 @@ class XFMRosDriver:
 def main():
   rospy.init_node('XFMRosDriver')
   xfm = XFMRosDriver()
+  th = threading.Thread(target=xfm.getGPIO)
+  th.start()
   rospy.spin()
 
 if __name__ == "__main__":

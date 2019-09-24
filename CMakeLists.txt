@@ -12,7 +12,6 @@ catkin_python_setup()
 # Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  gpio_msg.msg
   xfm_cmd.msg
   xfm_status.msg
 )
