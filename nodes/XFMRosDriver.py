@@ -57,16 +57,18 @@ class XFMRosDriver:
     msg.header.stamp = rospy.Time.now()
     msg.xfm_fm_version = self.xfm_fm_version
     msg.xfm_build_num = self.xfm_build_num
-    msg.xfm_wakeup_angle = self._xfm.getWakeUpAng()
+
+    wakeup_ang = self._xfm.getWakeUpAng()
     i = 1
-    while not (msg.xfm_wakeup_angle != -1):
-      msg.xfm_wakeup_angle = self._xfm.getWakeUpAng()
+    while not (wakeup_ang != -1):
+      wakeup_ang = self._xfm.getWakeUpAng()
       if i % 4 == 0:
         rospy.logfatal("get xfm wake-up angle error")
-        msg.xfm_wakeup_angle = -1
+        wakeup_ang = -111
         break
       i += 1
       time.sleep(0.5)
+    msg.xfm_wakeup_angle = self.ang2rad(wakeup_ang)
 
     msg.xfm_wakeup_score = self._xfm.getWakeUpScore()
     i = 1
@@ -80,6 +82,15 @@ class XFMRosDriver:
       time.sleep(0.5)
 
     self.status_pub.publish(msg)
+
+  def ang2rad(self, ang):
+    if ang >= 0 and ang < 180:
+      return -(180-ang)*0.01745329
+    elif ang >= 180 and ang < 360:
+      return (ang-180)*0.01745329
+    else:
+      return 0
+      print "input error"
 
 def main():
   rospy.init_node('XFMRosDriver')
