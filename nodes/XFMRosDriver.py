@@ -50,6 +50,13 @@ class XFMRosDriver:
         self.pushMsg()
       xfm_last_status = xfm_now_status
       r.sleep()
+      
+  def getMsgWithoutGPIO(self):
+    rospy.loginfo('get i2c massage without gpio...')
+    r = rospy.Rate(10)
+    while not rospy.is_shutdown():
+      self.pushMsg() 
+      r.sleep()
 
   def pushMsg(self):
     msg = xfm_status()
@@ -95,7 +102,8 @@ class XFMRosDriver:
 def main():
   rospy.init_node('XFMRosDriver')
   xfm = XFMRosDriver()
-  th = threading.Thread(target=xfm.getGPIO)
+  # th = threading.Thread(target=xfm.getGPIO)
+  th = threading.Thread(target=xfm.getMsgWithoutGPIO)
   th.start()
   rospy.spin()
 
