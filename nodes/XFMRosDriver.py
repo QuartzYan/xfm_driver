@@ -36,7 +36,7 @@ class XFMRosDriver:
       self._xfm.setReset()
     if msg.xfm_wakeup_disable == True:
       self._xfm.setWakeUpEn(0)
-    else:
+    elif msg.xfm_reset == False:
       self._xfm.setWakeUpEn(1)
 
   def getGPIO(self):
