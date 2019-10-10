@@ -26,7 +26,18 @@ class XFMRosDriver:
     rospy.loginfo('get xfm firmware successful!')
 
     rospy.loginfo('GPIO setup')
-    gpio.setup(XFM_WAKEUP_PIN, gpio.IN)
+    try:
+      gpio.setup(XFM_WAKEUP_PIN, gpio.IN)
+      rospy.loginfo('GPIO setup successful!!')
+    except:
+      rospy.loginfo('GPIO setup try again...')
+      time.sleep(2)
+      try:
+        gpio.setup(XFM_WAKEUP_PIN, gpio.IN)
+        rospy.loginfo('GPIO setup successful!!')
+      except:
+        rospy.loginfo('GPIO setup failed!!')
+        exit(-1)      
 
     self.status_pub = rospy.Publisher('xfm_status', xfm_status, queue_size=1)
     rospy.Subscriber('xfm_cmd', xfm_cmd, self.cmdCallBack)
